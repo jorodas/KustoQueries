@@ -112,3 +112,16 @@ ConfigurationChange
 | project Computer, ConfigChangeType , SoftwareType, TimeGenerated , SoftwareName, ManagementGroupName
 | sort by ManagementGroupName desc
 
+Security
+
+SecurityEvent
+| where TimeGenerated >= ago(1d) 
+| where Process != "" 
+| where Process != "-" 
+| where Process !contains "\\windows\\system" 
+| where Process !contains "\\Program Files\\Microsoft" 
+| where Process !contains "\\Program Files\\Microsoft Monitoring Agent" 
+| where Process !contains "\\ProgramData" 
+| project TimeGenerated, Process , Computer, Account 
+| summarize count() by TimeGenerated, Process, Computer, Account 
+
