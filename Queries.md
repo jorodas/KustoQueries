@@ -1,0 +1,2 @@
+# KustoQueries
+Sample Kusto Queries
