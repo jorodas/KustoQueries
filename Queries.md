@@ -112,6 +112,20 @@ ConfigurationChange
 | project Computer, ConfigChangeType , SoftwareType, TimeGenerated , SoftwareName, ManagementGroupName
 | sort by ManagementGroupName desc
 
+
+ - Show me Updates from a specific Computer
+ 
+ Update
+| where TimeGenerated>ago(5h) and OSType=="Linux" and SourceComputerId in ((Heartbeat
+| where TimeGenerated>ago(12h) and OSType=="Linux" and notempty(Computer)
+| summarize arg_max(TimeGenerated, Solutions) by SourceComputerId
+| where Solutions has "updates"
+| distinct SourceComputerId))
+| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, SourceComputerId, Product, ProductArch
+| where UpdateState=~"Needed" and Computer=="centos-02"
+| render table
+| summarize count() by Classification
+
 Security
 
 SecurityEvent
