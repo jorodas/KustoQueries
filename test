@@ -1,1 +1,3 @@
 wget https://raw.githubusercontent.com/Microsoft/OMS-Agent-for-Linux/master/installer/scripts/onboard_agent.sh && sh onboard_agent.sh -w 11055336-7a86-4548-9e38-18d552af19ed -s 7HEhd4C7yoC6+/KkUeqht9R7IlfyRpqOFcrq1NgVbF7MJELNVif7tPf6TPMuieKDAc82i1MzoViesOlC1PbYVw==
+wget --content-disposition https://aka.ms/dependencyagentlinux -O InstallDependencyAgent-Linux64.bin 
+sudo sh InstallDependencyAgent-Linux64.bin -s
