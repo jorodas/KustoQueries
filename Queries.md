@@ -139,3 +139,13 @@ SecurityEvent
 | project TimeGenerated, Process , Computer, Account 
 | summarize count() by TimeGenerated, Process, Computer, Account 
 
+
+SLA
+
+W3CIISLog
+| where TimeGenerated >= ago(2d) 
+| summarize SLABreached=count(TimeTaken >10000), SLAMet=count(TimeTaken < 10000), totalCount=count() by bin(TimeGenerated, 15m)  
+| extend pctSLAIndex = SLAMet * 100.0/totalCount 
+| extend SLA = 99
+| project TimeGenerated, pctSLAIndex , SLA 
+| render timechart 
