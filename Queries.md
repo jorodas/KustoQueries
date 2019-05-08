@@ -68,6 +68,17 @@ Perf
  
 You can see perf data per groups, however, I need to work on this one, I can see both groups, but need to work on the case statement
 
+-	show me the top 5 logical drives by free space? (optional filter by drive)
+let PercentSpace = 90;
+Perf
+| where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
+| summarize FreeSpace = min(CounterValue) by Computer, InstanceName
+//| where InstanceName == "C:"
+| where InstanceName contains ":"
+| where FreeSpace < PercentSpace
+| sort by FreeSpace asc
+| take 5
+
 Event Queries
 -	List of all security events
 SecurityEvent
