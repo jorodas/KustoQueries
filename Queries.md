@@ -160,3 +160,14 @@ W3CIISLog
 | extend SLA = 99
 | project TimeGenerated, pctSLAIndex , SLA 
 | render timechart 
+
+
+Azure AD
+
+show me login info and location
+
+SigninLogs
+| extend LocationAndState= strcat(tostring(LocationDetails["state"]), ", ",  (LocationDetails["countryOrRegion"])) 
+| project TimeGenerated ,UserDisplayName , ConditionalAccessStatus ,  SourceSystem , OperationName, LocationAndState, IPAddress
+
+
