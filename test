@@ -2,3 +2,7 @@ wget https://raw.githubusercontent.com/Microsoft/OMS-Agent-for-Linux/master/inst
 wget --content-disposition https://aka.ms/dependencyagentlinux -O InstallDependencyAgent-Linux64.bin 
 sudo sh InstallDependencyAgent-Linux64.bin -s
 /opt/microsoft/omsagent/bin/omsadmin.sh -w 81d53c10-98a2-4de8-bffb-97764cd70dd1 -s OwmzOw/v6dbllpixWgQrTaoG6o8jFhCPnmfTGqHrdwHzWMsqKdVIjzTwulWq3Phi0quzbt0G8Dm5lNoFH3fOcw== 
+
+
+lmsft ws
+wget https://raw.githubusercontent.com/Microsoft/OMS-Agent-for-Linux/master/installer/scripts/onboard_agent.sh && sh onboard_agent.sh -w 81d53c10-98a2-4de8-bffb-97764cd70dd1 -s OwmzOw/v6dbllpixWgQrTaoG6o8jFhCPnmfTGqHrdwHzWMsqKdVIjzTwulWq3Phi0quzbt0G8Dm5lNoFH3fOcw== -d opinsights.azure.com
