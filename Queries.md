@@ -137,6 +137,21 @@ ConfigurationChange
 | render table
 | summarize count() by Classification
 
+ - What are the top 100 updates for the last 30 days on my machines
+
+Update
+| where TimeGenerated>ago(30d) and OSType!="Linux" and (Optional==false or Classification has "Critical" or Classification has "Security") and SourceComputerId in ((Heartbeat
+| where TimeGenerated>ago(30d) and OSType=~"Windows" and notempty(Computer)
+| summarize arg_max(TimeGenerated, Solutions) by SourceComputerId
+| where Solutions has "updates"
+| distinct SourceComputerId))
+| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, SourceComputerId, UpdateID
+| where UpdateState=~"Needed" and Approved!=false
+| project Computer  , TimeGenerated  , PublishedDate  , KBID  , Product  , Title  , UpdateState  , Optional  , RebootBehavior
+| take 100
+| sort by TimeGenerated desc
+
+
 Security
 
 SecurityEvent
