@@ -35,6 +35,13 @@ Perf
 | summarize avg(CounterValue) by bin(TimeGenerated, 1h)
 | render timechart
 
+ - Show me the top 10 computers with less than 1GB RAM available?
+ 
+ Perf
+| where CounterName == "Available MBytes" and  CounterValue <= 1024
+| project TimeGenerated, Computer, CounterName, ObjectName, CounterValue 
+| summarize arg_max(TimeGenerated, *) by Computer
+| top 10 by CounterValue asc
  
 You could drill down once you find the one using most of the resources and expose data quickly
 
