@@ -193,7 +193,7 @@ SigninLogs
 | extend LocationAndState= strcat(tostring(LocationDetails["state"]), ", ",  (LocationDetails["countryOrRegion"])) 
 | project TimeGenerated ,UserDisplayName , ConditionalAccessStatus ,  SourceSystem , OperationName, LocationAndState, IPAddress
 
-Which IPs are accesing my storage accounts?
+Which IPs are accesing my storage accounts? (Thanks Dustin Paulson!)
 AzureActivity
 | where Type == "AzureActivity" 
 | where OperationName == "List Storage Account Keys" 
