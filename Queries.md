@@ -193,4 +193,10 @@ SigninLogs
 | extend LocationAndState= strcat(tostring(LocationDetails["state"]), ", ",  (LocationDetails["countryOrRegion"])) 
 | project TimeGenerated ,UserDisplayName , ConditionalAccessStatus ,  SourceSystem , OperationName, LocationAndState, IPAddress
 
-
+Which IPs are accesing my storage accounts?
+AzureActivity
+| where Type == "AzureActivity" 
+| where OperationName == "List Storage Account Keys" 
+| where ResourceProvider == "Microsoft.Storage" 
+| extend method_ = tostring(parse_json(HTTPRequest).method) 
+| project Caller, CallerIpAddress, method_, Resource, ResourceGroup 
