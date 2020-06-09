@@ -9,6 +9,27 @@ Alert
 | project TimeGenerated, AlertSeverity, SourceDisplayName, AlertName 
 | sort by SourceDisplayName desc
 
+Service Health
+//Sample Alerts from SCOM for a specific computername (dc)
+Alert
+| where AlertSeverity == "Error" and SourceDisplayName contains "dc"
+| project TimeGenerated, AlertSeverity, SourceDisplayName, AlertName
+| sort by SourceDisplayName desc
+
+
+//Sample Service Health Queries
+Event
+| where EventLog == "System" and EventID == 7036 and Source == "Service Control Manager" and Computer contains "lms-dc" 
+| parse kind=relaxed EventData with * '<Data Name="param1">' Windows_Service_Name '</Data><Data Name="param2">' Windows_Service_State '</Data>' *
+| sort by TimeGenerated desc
+| project Computer, Windows_Service_Name, Windows_Service_State, TimeGenerated
+
+ConfigurationData
+| where Computer contains "lms-dc-01" and SvcName =~ "spooler"
+| project SvcName, SvcDisplayName, SvcState, TimeGenerated
+//| where SvcState != "Running"
+
+
 Performance Queries
 -	Top 10 processor utilization, you can rename the Y axis as needed
 
