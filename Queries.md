@@ -222,3 +222,52 @@ AzureActivity
 | where ResourceProvider == "Microsoft.Storage" 
 | extend method_ = tostring(parse_json(HTTPRequest).method) 
 | project Caller, CallerIpAddress, method_, Resource, ResourceGroup 
+
+
+Windows Virtual Desktop
+
+// connection status
+// review CorrelationID, State
+WVDConnections
+| where TimeGenerated > ago(1d)
+| where UserName contains "Smith"
+| sort by TimeGenerated, CorrelationId asc 
+
+
+// No Connections by day for UPN
+// this will show the pattern of connections
+WVDConnections
+| where TimeGenerated >ago(1d)
+| where UserName contains "Smith"
+| sort by TimeGenerated asc, CorrelationId
+| summarize dcount(CorrelationId) by bin (TimeGenerated, 1d)
+
+//session lenght for User UPN
+// Show Connection Lenght for Application, that could show an issue
+let Events = WVDConnections | where UserName contains "Smith";
+Events
+| where State == "Connected"
+| where TimeGenerated > ago (1d)
+| project CorrelationId, UserName, ResourceAlias, StartTime=TimeGenerated
+| join (Events
+| where State== "Completed"
+| where TimeGenerated > ago(1d)
+| project EndTime=TimeGenerated, CorrelationId)
+on CorrelationId
+| project Duration=EndTime-StartTime,ResourceAlias
+
+//Show Errors
+// we see Time Stamp, CorrelationId (to help debug issues), ActivityType (to debug issue on specific activity types), Message, ServiceError can help expose that Microsoft support must be engaged (i.e. service outage!)
+WVDErrors
+| where TimeGenerated > ago(1d)
+| where UserName contains "Smith"
+| take 100
+
+//Show Errors
+//show aggregated data of different errors and render a chart
+WVDErrors
+| where TimeGenerated > ago(1d)
+| where UserName =="SMITHB@vincyman.com"
+| summarize CorrelationIDCount = count(CorrelationId) by CodeSymbolic,ServiceError
+| sort by CorrelationIDCount desc 
+| render columnchart 
