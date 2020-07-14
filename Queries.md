@@ -264,10 +264,38 @@ WVDErrors
 | take 100
 
 //Show Errors
-//show aggregated data of different errors and render a chart
+//show aggregated data of different errors and render a chart, or review by Results as well by checking teh ServiceError Column!
 WVDErrors
 | where TimeGenerated > ago(1d)
 | where UserName =="SMITHB@vincyman.com"
 | summarize CorrelationIDCount = count(CorrelationId) by CodeSymbolic,ServiceError
 | sort by CorrelationIDCount desc 
+| render columnchart 
+
+//Search by ErrorCode
+// you can see UserName column to see if multiple users are hitting a specific issue specified in CodeSymbolic
+WVDErrors
+| where TimeGenerated > ago(1d)
+| where CodeSymbolic contains "failed" 
+| summarize count(UserName) by CodeSymbolic, ServiceError
+
+//Search by ErrorCode
+// you can see Results, to expose and identify  if multiple users are hitting a specific issue specified in CodeSymbolic
+WVDErrors
+| where TimeGenerated > ago(1d)
+| where ServiceError == "false"
+| summarize usercount = count(UserName) by CodeSymbolic
+| sort by usercount desc 
+| render barchart 
+
+//What did our admins activities were done recently?
+WVDManagement
+| where TimeGenerated > ago(1d)
+| where ObjectsUpdated != 0
+| project TimeGenerated, UserName, _ResourceId
+
+//Track Resource Usage of applications!
+WVDConnections
+| where TimeGenerated > ago(1d)
+| summarize dcount(UserName) by ResourceAlias
 | render columnchart 
