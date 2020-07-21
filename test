@@ -1,1 +1,1 @@
-
+wget https://raw.githubusercontent.com/Microsoft/OMS-Agent-for-Linux/master/installer/scripts/onboard_agent.sh && sh onboard_agent.sh -w fba3b5df-e793-43f1-8442-7b4a9005394f -s nGxBJpFJK4hgSXMdkfp9J9/hFD96x9hZi+dxBKHAw3P4o8Wq6QN4TC2JCAYblpqXbNwkh3G7tD4NZot/BX7Kvg== -d opinsights.azure.com
