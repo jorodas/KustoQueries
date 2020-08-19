@@ -299,3 +299,121 @@ WVDConnections
 | where TimeGenerated > ago(1d)
 | summarize dcount(UserName) by ResourceAlias
 | render columnchart 
+
+
+
+
+//////////////////////////////////////////////////////////////////
+
+
+//Sample Alerts from SCOM for a specific computername (dc)
+Alert
+| where AlertSeverity == "Error" and SourceDisplayName contains "dc"
+| project TimeGenerated, AlertSeverity, SourceDisplayName, AlertName
+| sort by SourceDisplayName desc
+
+//Sample Service Health Queries
+Event
+| where EventLog == "System" and EventID == 7036 and Source == "Service Control Manager" and Computer contains "lms-dc"
+| parse kind=relaxed EventData with * '<Data Name="param1">' Windows_Service_Name '</Data><Data Name="param2">' Windows_Service_State '</Data>' *
+| sort by TimeGenerated desc
+| project Computer, Windows_Service_Name, Windows_Service_State, TimeGenerated
+
+ConfigurationData
+| where Computer contains "lms-dc-01" and SvcName =~ "spooler"
+| project SvcName, SvcDisplayName, SvcState, TimeGenerated
+//| where SvcState != "Running"
+
+// SQL Server Recommendations
+SQLAssessmentRecommendation
+| where TimeGenerated >=ago (30d)
+| where RecommendationResult == "Failed"
+//and DatabaseName == "OperationsManager"
+| project  TimeGenerated, Recommendation, DatabaseName
+| sort by DatabaseName desc
+
+// Update Settings for a specific computer
+UpdateSummary
+| project Computer, WindowsUpdateSetting
+| where Computer like 'dc'
+| render table
+
+// WSUS Settings
+UpdateSummary
+| project Computer, ManagementGroupName , WindowsUpdateAgentVersion, WSUSServer
+| render table
+| sort by ManagementGroupName asc
+
+// Show me updates from different types, and tell me which SCOM environment they are talking to
+ConfigurationChange
+| where ConfigChangeType == "Software" and SoftwareType == "Update"
+| project Computer, ConfigChangeType , SoftwareType, TimeGenerated , SoftwareName, ManagementGroupName
+| sort by ManagementGroupName desc
+
+//Show me Updates needed from a specific Computer
+Update
+| where  SourceComputerId in ((Heartbeat
+| where  notempty(Computer)
+| summarize arg_max(TimeGenerated, Solutions) by SourceComputerId
+| where Solutions has "updates"
+| distinct SourceComputerId))
+| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, SourceComputerId, Product, ProductArch
+| where UpdateState=~"Needed" and Computer contains "dc-01"
+| render table
+| summarize count() by Classification
+
+//Graph Performance usage
+Perf
+| where TimeGenerated > ago(7d)
+| where Computer contains "dc"
+| where CounterName == @"% Processor Time"
+| summarize avg(CounterValue) by Computer, bin(TimeGenerated, 15m)
+| render timechart
+
+//security account log on
+SecurityEvent
+| where TimeGenerated >= ago(1d)
+| where Process != ""
+| where Process != "-"
+| project TimeGenerated, Process , Computer, Account
+| summarize count() by TimeGenerated, Process, Computer, Account
+
+//Security incorrect log on
+SecurityEvent
+| where EventID between (529 .. 537) or EventID==539 or (EventID==4625 and Status=="0xc000006d") and TimeGenerated >= ago(1m)
+| project TargetAccount, IpAddress, Computer, LogonProcessName, AuthenticationPackageName, LogonTypeName
+
+//Security event log cleared
+SecurityEvent
+| where EventID==517 or EventID==1102
+| project Activity, Computer, TimeGenerated, EventData
+
+//Security Account Management: Passwords Change Attempts by Non-owner
+SecurityEvent
+| where EventID==4723 or EventID==4724 or EventID between (627 .. 628) and SubjectAccount != "ANONYMOUS LOGON" and TargetAccount!=SubjectAccount
+| project TimeGenerated, Computer, TargetAccount, ChangedBy=SubjectAccount
+
+//SigninLogs AAD
+SigninLogs
+| extend LocationAndState= strcat(tostring(LocationDetails["state"]), ", ", (LocationDetails["countryOrRegion"]))
+| project TimeGenerated ,UserDisplayName , ConditionalAccessStatus , SourceSystem , OperationName, LocationAndState, IPAddress
+
+// ALA Query
+// Shows cost per data source in ALA
+// == Variables start ==
+let CostPerGB = 2.18;
+let Currency = '$';
+let StartTime = ago(9d);
+let EndTime = ago(1hr);
+// == Variables end ==
+let ChargeableTables = Usage
+| where TimeGenerated between (startofday(StartTime) .. endofday(EndTime))
+| where IsBillable == true
+//| where DataType != 'SecurityEvent'
+| summarize by tostring(pack(DataType, bin(TimeGenerated, 1d)));
+union withsource=SourceTable *
+| where TimeGenerated between (startofday(StartTime) .. endofday(EndTime))
+| summarize TotalDailyUsagePerTable=sum(_BilledSize) by SourceTable, TimeGenerated=(bin(TimeGenerated, 1d))
+| where tostring(pack(SourceTable, bin(TimeGenerated, 1d))) in (ChargeableTables)
+| summarize DailyUsageMbNonSecurity=(sum(TotalDailyUsagePerTable)/1024)/1024, DataSources=make_set(SourceTable) by Date=format_datetime(TimeGenerated, 'dd-MM-yyy')
+| extend TotalDailyPriceNonSecurity = strcat(Currency, round((DailyUsageMbNonSecurity/1024) * CostPerGB, 2))
