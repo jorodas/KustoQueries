@@ -417,3 +417,29 @@ union withsource=SourceTable *
 | where tostring(pack(SourceTable, bin(TimeGenerated, 1d))) in (ChargeableTables)
 | summarize DailyUsageMbNonSecurity=(sum(TotalDailyUsagePerTable)/1024)/1024, DataSources=make_set(SourceTable) by Date=format_datetime(TimeGenerated, 'dd-MM-yyy')
 | extend TotalDailyPriceNonSecurity = strcat(Currency, round((DailyUsageMbNonSecurity/1024) * CostPerGB, 2))
+
+
+
+//security account log on
+SecurityEvent
+| where TimeGenerated >= ago(1d)
+| where Process != ""
+| where Process != "-"
+| project TimeGenerated, Process , Computer, Account
+| summarize count() by TimeGenerated, Process, Computer, Account
+
+//Security incorrect log on
+SecurityEvent
+| where EventID between (529 .. 537) or EventID==539 or (EventID==4625 and Status=="0xc000006d") and TimeGenerated >= ago(1m)
+| project TargetAccount, IpAddress, Computer, LogonProcessName, AuthenticationPackageName, LogonTypeName
+
+//Security event log cleared
+SecurityEvent
+| where EventID==517 or EventID==1102
+| project Activity, Computer, TimeGenerated, EventData
+
+//Security Account Management: Passwords Change Attempts by Non-owner
+SecurityEvent
+| where EventID==4723 or EventID==4724 or EventID between (627 .. 628) and SubjectAccount != "ANONYMOUS LOGON" and TargetAccount!=SubjectAccount
+| project TimeGenerated, Computer, TargetAccount, ChangedBy=SubjectAccount
+
