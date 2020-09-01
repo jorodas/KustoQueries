@@ -1,0 +1,93 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "ProtectionStatus\r\n| where ProtectionStatus == \"Not Reporting\"\r\n| summarize count(), startNotReporting = min(TimeGenerated), endNotReporting = max(TimeGenerated) by Computer, ProtectionStatusDetails\r\n| join ProtectionStatus on Computer\r\n| summarize lastReporting = max(TimeGenerated), startNotReporting = any(startNotReporting), endNotReporting = any(endNotReporting) by Computer\r\n| extend durationNotReporting = endNotReporting - startNotReporting",
+        "size": 0,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "/subscriptions/64f9887b-aa93-4bc9-a8d7-56033998b7b1/resourceGroups/ULab/providers/Microsoft.OperationalInsights/workspaces/ULab"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Computer",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "lastReporting",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "startNotReporting",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "endNotReporting",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "durationNotReporting",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 27,
+                "options": {
+                  "style": "decimal"
+                }
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "durationNotReporting",
+              "sortOrder": 2
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "Computer"
+            },
+            {
+              "columnId": "lastReporting",
+              "label": "Last Reporting Date"
+            },
+            {
+              "columnId": "startNotReporting",
+              "label": "Start Date"
+            },
+            {
+              "columnId": "endNotReporting",
+              "label": "End Date"
+            },
+            {
+              "columnId": "durationNotReporting",
+              "label": "Duration dd:hh:mm"
+            }
+          ]
+        }
+      },
+      "name": "query - 0"
+    }
+  ],
+  "styleSettings": {},
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

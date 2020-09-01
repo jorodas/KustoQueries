@@ -1,0 +1,223 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Account Management: Domain and Built-in Administrators Membership Changes\r\n\r\nSubject Account filter is regex based. Use .* for all records. \r\n\r\n**Important:** When using backslash (\\\\), make it double so that the search recognizes it. **Example:** `domain\\\\username`\r\n\r\n"
+      },
+      "name": "text - 1"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "parameters": [
+          {
+            "id": "6979e272-dc68-4f1e-9f09-125e3bf50bab",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRangeParam",
+            "label": "Time Range",
+            "type": 4,
+            "value": {
+              "durationMs": 86400000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 1800000
+                },
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ],
+              "allowCustom": true
+            }
+          },
+          {
+            "id": "8860fe0a-ff78-4eea-92a7-4a24f1e90635",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "includeAll": true
+            }
+          },
+          {
+            "id": "8dc71176-c591-4e45-a8c8-e1442d01841d",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspace",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| project id",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "resourceTypeFilter": {
+                "microsoft.operationalinsights/workspaces": true
+              },
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "29316202-ac5f-4b1f-8fb1-d8ffb2b20190",
+            "version": "KqlParameterItem/1.0",
+            "name": "ComputerParam",
+            "label": "Computer",
+            "type": 1,
+            "isRequired": true,
+            "value": ".*",
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRangeParam"
+          },
+          {
+            "id": "75e76538-8f67-4754-b6e8-d6780be87489",
+            "version": "KqlParameterItem/1.0",
+            "name": "SubjectAccountParam",
+            "label": "Subject Account",
+            "type": 1,
+            "isRequired": true,
+            "value": ".*",
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRangeParam"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 0"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Members added to groups\r\n**Criteria:**\r\n\r\nEvents 4728, 4732, 4756, 632, 636 or 660\r\n<hr>\r\n"
+      },
+      "name": "text - 4"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityEvent \r\n| where Computer matches regex @\"(?i){ComputerParam}\" and SubjectAccount matches regex @\"(?i){SubjectAccountParam}\"\r\n| where EventID==4728 or EventID==4732 or EventID==4756 or EventID==632 or EventID==636 or EventID==660\r\n| search \"S-1-5-32-544\" or \"512\"\r\n| project Action=\"Add Member\", TargetUserName, Activity, SubjectAccount, MemberName, TimeGenerated, Computer\r\n| order by TimeGenerated desc",
+        "size": 0,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRangeParam",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "TargetAccount",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "EventCount",
+              "formatter": 8,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "filter": true
+        }
+      },
+      "name": "query - 3"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Members removed from groups\r\n**Criteria:**\r\n\r\nEvents 4729, 4733, 4757, 633, 637 or 661\r\n<hr>\r\n"
+      },
+      "name": "text - 4 - Cópia"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityEvent \r\n| where Computer matches regex @\"(?i){ComputerParam}\" and SubjectAccount matches regex @\"(?i){SubjectAccountParam}\"\r\n| where EventID==4729 or EventID==4733 or EventID==4757 or EventID==633 or EventID==637 or EventID==661\r\n| search \"S-1-5-32-544\" or \"512\"\r\n| project Action=\"Remove Member\", TargetUserName, Activity, SubjectAccount, MemberName, TimeGenerated, Computer",
+        "size": 0,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRangeParam",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "TargetAccount",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "EventCount",
+              "formatter": 8,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "filter": true
+        }
+      },
+      "name": "query - 3 - Cópia"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

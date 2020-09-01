@@ -1,0 +1,428 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "## Azure Security Compliance report \r\nUse this report to show Compliance info \r\n<br/>\r\n<br/>"
+      },
+      "name": "text - 0"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "ccd5adcd-8d59-4cfe-99ec-98075de2e253",
+            "version": "KqlParameterItem/1.0",
+            "name": "DefaultSubscription_Internal",
+            "type": 1,
+            "isRequired": true,
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| take 1\r\n| project subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "isHiddenWhenLocked": true,
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "1ca69445-60fc-4806-b43d-ac7e6aad630a",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "query": "summarize by subscriptionId\r\n| project value = strcat(\"/subscriptions/\", subscriptionId), label = subscriptionId, selected = iff(subscriptionId =~ '{DefaultSubscription_Internal}', true, false)\r\n",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": []
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          }
+        ],
+        "style": "above",
+        "queryType": 1,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 1"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards\"\r\n| extend \r\n\tpassedControls = trim (' ', tostring(properties.passedControls)), \r\n\tfailedControls = trim(' ',tostring(properties.failedControls)), \r\n\tstate \t\t   = trim(' ', tostring(properties.state)), \r\n\tunsupportedControls = trim(' ', tostring(properties.unsupportedControls)), \r\n\tskippedControls     = trim(' ', tostring(properties.skippedControls))\r\n| project name, passedControls, failedControls, unsupportedControls, skippedControls , subscriptionId\r\n| order by passedControls desc",
+        "size": 0,
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "name",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "passedControls",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 0,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": false
+                }
+              }
+            },
+            {
+              "columnMatch": "failedControls",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 0,
+                "options": {
+                  "style": "decimal"
+                }
+              }
+            },
+            {
+              "columnMatch": "unsupportedControls",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "skippedControls",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "subscriptionId",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_bar_passedControls_1",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_bar_passedControls_1",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "name": "query - 2"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Compliance Controls"
+      },
+      "name": "text - 8"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "parameters": [
+          {
+            "id": "fc6c4014-dede-4c31-9e8c-dc29eb2c211b",
+            "version": "KqlParameterItem/1.0",
+            "name": "SelectCompliance",
+            "type": 5,
+            "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards\"\r\n| project name\r\n",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "value": "Azure-CIS-1.1.0",
+            "typeSettings": {
+              "additionalResourceOptions": []
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "46858602-cf4b-4673-9e3b-c5fa42d76558",
+            "version": "KqlParameterItem/1.0",
+            "name": "selectState",
+            "type": 5,
+            "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards/regulatorycompliancecontrols\"\r\n | extend  state \t\t   = trim(' ', tostring(properties.state))\r\n| summarize by state",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "value": "Passed",
+            "typeSettings": {
+              "additionalResourceOptions": []
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          }
+        ],
+        "style": "above",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "parameters - 4"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "Filter on {SelectCompliance} or {selectState}"
+      },
+      "name": "text - 5"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards/regulatorycompliancecontrols\"\r\n| parse id with *\"/regulatoryComplianceStandards/\" strControlName \"/regulatory\"*\r\n | extend \r\n\t state \t\t   = trim(' ', tostring(properties.state))\r\n\t,description    = trim(' ', tostring(properties.description))\r\n| where  strControlName startswith '{SelectCompliance}'\r\n| extend isState = iif(isempty('{selectState}'),\"All states\",'{selectState}')\r\n//| where isSstate == '{selectState}'\r\n| summarize by  ControlName = strControlName, name, Status = isState, description\r\n",
+        "size": 0,
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "ControlName",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "name",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Status",
+              "formatter": 18,
+              "formatOptions": {
+                "showIcon": true,
+                "thresholdsOptions": "colors",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "failed",
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Failed",
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Passed",
+                    "representation": "green",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Unsupported",
+                    "representation": "orange",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "blue",
+                    "text": "{0}{1}"
+                  }
+                ]
+              },
+              "numberFormat": {
+                "unit": 0,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": false
+                }
+              }
+            },
+            {
+              "columnMatch": "description",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "description",
+              "sortOrder": 1
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "description",
+            "sortOrder": 1
+          }
+        ]
+      },
+      "name": "query - 3"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Compliance Assessments"
+      },
+      "name": "text - 6"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": " securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards/regulatorycompliancecontrols/regulatorycomplianceassessments\"\r\n| parse id with *\"/regulatoryComplianceStandards/\" strControlName \"/regulatory\"*\r\n | extend \r\n\t state \t\t   = trim(' ', tostring(properties.state))\r\n\t,description   = trim(' ', tostring(properties.description))\r\n\t,assessType    = trim(' ', tostring(properties.assessmentType))\r\n\t,passedResources = trim (' ', tostring(properties.passedResources))\r\n\t,failedResources = trim(' ',tostring(properties.failedResources))\r\n\t,skippedResources     = trim(' ', tostring(properties.skippedResources))\r\n    | where  strControlName startswith '{SelectCompliance}'\r\n| extend isState = iif(isempty('{selectState}'),\"All states\",'{selectState}')\r\n| summarize by  ControlName = strControlName, description,Status = isState, passedResources, failedResources, skippedResources ",
+        "size": 0,
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "ControlName",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "description",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Status",
+              "formatter": 18,
+              "formatOptions": {
+                "showIcon": true,
+                "thresholdsOptions": "colors",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Passed",
+                    "representation": "green",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Unsupported",
+                    "representation": "orange",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "failed",
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Failed",
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "blue",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "passedResources",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "failedResources",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "skippedResources",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_bar_passedResources_3",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_bar_passedResources_3",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "name": "query - 7"
+    }
+  ],
+  "fromTemplateId": "community-Workbooks/Azure Monitor - Workspaces/Workspace Usage",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
