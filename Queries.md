@@ -1,6 +1,8 @@
 # KustoQueries
 ## Sample Kusto Queries
 
+This is a work in progress. Queries are provided as sample code, "as is" with no support
+
 ### SCOM Alert Queries
 #### * Expose alerts with a specific criterion
 
@@ -67,7 +69,7 @@ Perf
  
 You could drill down once you find the one using most of the resources and expose data quickly
 
--	Perf data for all our the computers we have
+#### -	Perf data for all our the computers we have
 
 let endTime=now();
 let timerange =1d;
@@ -84,7 +86,7 @@ Perf
  
 You could highlight the one you see using most data
 
--	Compare perf data between computer groups
+#### -	Compare perf data between computer groups
 
 Perf
 | where ObjectName == "Processor"
@@ -93,11 +95,10 @@ Perf
 | summarize avg(CounterValue) by bin(TimeGenerated, 1h), group
 | render timechart
 
-
  
 You can see perf data per groups, however, I need to work on this one, I can see both groups, but need to work on the case statement
 
--	show me the top 5 logical drives by free space? (optional filter by drive)
+#### -	show me the top 5 logical drives by free space? (optional filter by drive)
 let PercentSpace = 90;
 Perf
 | where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
@@ -108,44 +109,44 @@ Perf
 | sort by FreeSpace asc
 | take 5
 
-Event Queries
--	List of all security events
+### Event Queries
+
+#### -	List of all security events
 SecurityEvent
 | project  Activity
 | parse Activity with activityID " - " activityDesc
 | summarize count() by activityID
 
--	When was the last time a specific computer was rebooted?
+#### -	When was the last time a specific computer was rebooted?
 
 Event 
 | where Computer containscs "clt" and  EventID == 6005 and EventLog == "System" and Source == "EventLog"
 | project Computer, TimeGenerated 
 | sort by Computer
 
+### Updates Queries
 
-Updates Queries
--	Updates for a specific computer
+#### -	Updates for a specific computer
 
 UpdateSummary
 | project Computer, WindowsUpdateSetting  
  | where Computer  like 'test' 
  | render table
 
--	Updates for a computer and WSUS Server 
+#### -	Updates for a computer and WSUS Server 
 
 UpdateSummary
 | project Computer, ManagementGroupName , WindowsUpdateAgentVersion, WSUSServer  | render table
 | sort by ManagementGroupName asc 
 
-
--	Is there a specific update installed?
+#### -	Is there a specific update installed?
 
 Update 
 | where KBID == 3173424
 | project Computer, KBID, UpdateState 
 | render table
 
--	Show me updates from different types, and tell me which SCOM environment they are talking to 
+#### -	Show me updates from different types, and tell me which SCOM environment they are talking to 
 
 ConfigurationChange 
 | where ConfigChangeType == "Software" and SoftwareType == "Update" 
@@ -153,7 +154,7 @@ ConfigurationChange
 | sort by ManagementGroupName desc
 
 
- - Show me Updates from a specific Computer
+ #### - Show me Updates from a specific Computer
  
  Update
 | where TimeGenerated>ago(5h) and OSType=="Linux" and SourceComputerId in ((Heartbeat
@@ -166,7 +167,7 @@ ConfigurationChange
 | render table
 | summarize count() by Classification
 
- - What are the top 100 updates for the last 30 days on my machines
+ #### - What are the top 100 updates for the last 30 days on my machines
 
 Update
 | where TimeGenerated>ago(30d) and OSType!="Linux" and (Optional==false or Classification has "Critical" or Classification has "Security") and SourceComputerId in ((Heartbeat
@@ -182,7 +183,7 @@ Update
 
 
 
-Security
+### Security
 
 SecurityEvent
 | where TimeGenerated >= ago(1d) 
@@ -196,7 +197,7 @@ SecurityEvent
 | summarize count() by TimeGenerated, Process, Computer, Account 
 
 
-SLA
+### SLA for IIS Logs
 
 W3CIISLog
 | where TimeGenerated >= ago(2d) 
@@ -207,15 +208,15 @@ W3CIISLog
 | render timechart 
 
 
-Azure AD
+### Azure AD
 
-show me login info and location
+#### Show me login info and location
 
 SigninLogs
 | extend LocationAndState= strcat(tostring(LocationDetails["state"]), ", ",  (LocationDetails["countryOrRegion"])) 
 | project TimeGenerated ,UserDisplayName , ConditionalAccessStatus ,  SourceSystem , OperationName, LocationAndState, IPAddress
 
-Which IPs are accesing my storage accounts? (Thanks Dustin Paulson!)
+#### Which IPs are accesing my storage accounts? (Thanks Dustin Paulson!)
 
 AzureActivity
 | where Type == "AzureActivity" 
@@ -225,26 +226,24 @@ AzureActivity
 | project Caller, CallerIpAddress, method_, Resource, ResourceGroup 
 
 
-Windows Virtual Desktop
+### Windows Virtual Desktop
+#### Connection status, review CorrelationID, State
 
-// connection status
-// review CorrelationID, State
 WVDConnections
 | where TimeGenerated > ago(1d)
 | where UserName contains "Smith"
 | sort by TimeGenerated, CorrelationId asc 
 
+#### No Connections by day for UPN / this will show the pattern of connections
 
-// No Connections by day for UPN
-// this will show the pattern of connections
 WVDConnections
 | where TimeGenerated >ago(1d)
 | where UserName contains "Smith"
 | sort by TimeGenerated asc, CorrelationId
 | summarize dcount(CorrelationId) by bin (TimeGenerated, 1d)
 
-//session lenght for User UPN
-// Show Connection Lenght for Application, that could show an issue
+#### Session lenght for User UPN / Show Connection Lenght for Application, that could show an issue
+
 let Events = WVDConnections | where UserName contains "Smith";
 Events
 | where State == "Connected"
@@ -257,15 +256,15 @@ Events
 on CorrelationId
 | project Duration=EndTime-StartTime,ResourceAlias
 
-//Show Errors
-// we see Time Stamp, CorrelationId (to help debug issues), ActivityType (to debug issue on specific activity types), Message, ServiceError can help expose that Microsoft support must be engaged (i.e. service outage!)
+#### Show Errors / we see Time Stamp, CorrelationId (to help debug issues), ActivityType (to debug issue on specific activity types), Message, ServiceError can help expose that Microsoft support must be engaged (i.e. service outage!)
+
 WVDErrors
 | where TimeGenerated > ago(1d)
 | where UserName contains "Smith"
 | take 100
 
-//Show Errors
-//show aggregated data of different errors and render a chart, or review by Results as well by checking teh ServiceError Column!
+#### Show Errors / Show aggregated data of different errors and render a chart, or review by Results as well by checking teh ServiceError Column!
+
 WVDErrors
 | where TimeGenerated > ago(1d)
 | where UserName =="SMITHB@vincyman.com"
@@ -273,15 +272,15 @@ WVDErrors
 | sort by CorrelationIDCount desc 
 | render columnchart 
 
-//Search by ErrorCode
-// you can see UserName column to see if multiple users are hitting a specific issue specified in CodeSymbolic
+#### Search by ErrorCode / You can see UserName column to see if multiple users are hitting a specific issue specified in CodeSymbolic
+
 WVDErrors
 | where TimeGenerated > ago(1d)
 | where CodeSymbolic contains "failed" 
 | summarize count(UserName) by CodeSymbolic, ServiceError
 
-//Search by ErrorCode
-// you can see Results, to expose and identify  if multiple users are hitting a specific issue specified in CodeSymbolic
+#### Search by ErrorCode / you can see Results, to expose and identify  if multiple users are hitting a specific issue specified in CodeSymbolic
+
 WVDErrors
 | where TimeGenerated > ago(1d)
 | where ServiceError == "false"
@@ -289,13 +288,15 @@ WVDErrors
 | sort by usercount desc 
 | render barchart 
 
-//What did our admins activities were done recently?
+#### What did our admins activities were done recently?
+
 WVDManagement
 | where TimeGenerated > ago(1d)
 | where ObjectsUpdated != 0
 | project TimeGenerated, UserName, _ResourceId
 
-//Track Resource Usage of applications!
+#### Track Resource Usage of applications! 
+
 WVDConnections
 | where TimeGenerated > ago(1d)
 | summarize dcount(UserName) by ResourceAlias
@@ -303,10 +304,9 @@ WVDConnections
 
 
 
+#### Sample SCOM
 
 //////////////////////////////////////////////////////////////////
-
-
 //Sample Alerts from SCOM for a specific computername (dc)
 Alert
 | where AlertSeverity == "Error" and SourceDisplayName contains "dc"
