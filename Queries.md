@@ -1,8 +1,8 @@
 # KustoQueries
 ## Sample Kusto Queries
 
-SCOM Alert Queries
--	Expose alerts with a specific criterion
+### SCOM Alert Queries
+#### * Expose alerts with a specific criterion
 
 Alert 
 | where AlertName containscs "CPU Utilization" and AlertSeverity == "Error"
