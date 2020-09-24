@@ -1,5 +1,5 @@
 # KustoQueries
-Sample Kusto Queries
+##Sample Kusto Queries
 
 SCOM Alert Queries
 -	Expose alerts with a specific criterion
