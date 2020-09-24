@@ -4,12 +4,12 @@
 ### SCOM Alert Queries
 #### * Expose alerts with a specific criterion
 
-Alert 
+Alert
 | where AlertName containscs "CPU Utilization" and AlertSeverity == "Error"
 | project TimeGenerated, AlertSeverity, SourceDisplayName, AlertName 
 | sort by SourceDisplayName desc
 
-Service Health
+### Service Health
 //Sample Alerts from SCOM for a specific computername (dc)
 Alert
 | where AlertSeverity == "Error" and SourceDisplayName contains "dc"
@@ -24,14 +24,15 @@ Event
 | sort by TimeGenerated desc
 | project Computer, Windows_Service_Name, Windows_Service_State, TimeGenerated
 
+### Configuration Data
 ConfigurationData
 | where Computer contains "lms-dc-01" and SvcName =~ "spooler"
 | project SvcName, SvcDisplayName, SvcState, TimeGenerated
 //| where SvcState != "Running"
 
 
-Performance Queries
--	Top 10 processor utilization, you can rename the Y axis as needed
+### Performance Queries
+#### -	Top 10 processor utilization, you can rename the Y axis as needed
 
 Perf 
 | where ObjectName == "Processor"
@@ -39,7 +40,7 @@ Perf
 | where Average_CPU > 1
 | render barchart
 
--	Similar query for disk latency
+#### -	Similar query for disk latency
 
 Perf 
 | where CounterName == "Avg. Disk sec/Read" 
@@ -47,7 +48,7 @@ Perf
 | sort by Average_Latency desc
 
 
--	Overall Performance Data for the environment
+#### -	Overall Performance Data for the environment
 
 Perf
 | where TimeGenerated >=ago (7d)
@@ -56,7 +57,7 @@ Perf
 | summarize avg(CounterValue) by bin(TimeGenerated, 1h)
 | render timechart
 
- - Show me the top 10 computers with less than 1GB RAM available?
+#### - Show me the top 10 computers with less than 1GB RAM available?
  
  Perf
 | where CounterName == "Available MBytes" and  CounterValue <= 1024
