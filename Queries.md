@@ -444,3 +444,20 @@ SecurityEvent
 | where EventID==4723 or EventID==4724 or EventID between (627 .. 628) and SubjectAccount != "ANONYMOUS LOGON" and TargetAccount!=SubjectAccount
 | project TimeGenerated, Computer, TargetAccount, ChangedBy=SubjectAccount
 
+
+
+#### Key Vault Queries
+
+
+### Show me Operations and Source
+AzureDiagnostics | where ResourceProvider =="MICROSOFT.KEYVAULT" | summarize count() by OperationName, CallerIPAddress, Resource | order by count_ desc
+
+### Details on Categories for a specific Key Vault and renaming the Any(Category) column, into Category
+AzureDiagnostics | where ResourceProvider =="MICROSOFT.KEYVAULT" and Resource == "CH-MIGRATEKV-J5ZR1T" | summarize Category=any(Category) by OperationName
+
+
+### Details on failures reported in metrics
+
+AzureDiagnostics | where ResourceProvider =="MICROSOFT.KEYVAULT" and httpStatusCode_d > 200 | summarize count() by Resource, CallerIPAddress, httpStatusCode_d | order by httpStatusCode_d desc
+
+
