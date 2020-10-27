@@ -86,6 +86,21 @@ Perf
  
 You could highlight the one you see using most data
 
+#### -	Perf data delta for 1 wk
+let ProcessorBefore = Perf
+| where TimeGenerated between(ago(7d) .. ago(1d))
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize ValueBefore = avg(CounterValue) by Computer;
+let CurrentProcessor = Perf
+| where TimeGenerated > ago(1d)
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize CurrentValue = avg(CounterValue) by Computer;
+ProcessorBefore | join kind= inner (
+ CurrentProcessor 
+) on Computer
+| project-away Computer1
+| extend Difference = (CurrentValue - ValueBefore)
+
 #### -	Compare perf data between computer groups
 
 Perf
