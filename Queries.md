@@ -69,6 +69,19 @@ Perf
  
 You could drill down once you find the one using most of the resources and expose data quickly
 
+#### top 3 drives with less than 90%
+
+let PercentSpace = 90; //enter the threshold for the disk space percentage (remove comments for barchart)
+Perf
+| where ObjectName == "LogicalDisk" and CounterName == "% Free Space" and InstanceName == "C:"
+| summarize FreeSpace = min(CounterValue) by Computer, InstanceName
+| top 3 by FreeSpace
+| where FreeSpace < PercentSpace
+| project Computer, FreeSpace
+| sort by FreeSpace asc
+//| render barchart kind = unstacked
+
+
 #### -	Perf data for all our the computers we have
 
 let endTime=now();
